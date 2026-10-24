@@ -1,0 +1,263 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Represents an authenticated user profile in the e-learning system.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique Firebase Auth UID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the user.",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address.",
+          "format": "email",
+          "maxLength": 150
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar photo URL of the user.",
+          "maxLength": 500
+        },
+        "role": {
+          "type": "string",
+          "description": "User privilege role.",
+          "enum": ["student", "superadmin"]
+        },
+        "xp": {
+          "type": "number",
+          "description": "Total gamification experience points earned."
+        },
+        "streakDays": {
+          "type": "number",
+          "description": "Consecutive active learning days."
+        },
+        "lastActiveDate": {
+          "type": "string",
+          "description": "ISO date string of last activity."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO date string when user registered."
+        }
+      },
+      "required": ["id", "name", "email", "role", "xp", "streakDays"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Interactive course containing chapters, video lessons, resources, and quizzes.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the course."
+        },
+        "titleBn": {
+          "type": "string",
+          "description": "Title in Bengali.",
+          "maxLength": 200
+        },
+        "subtitleBn": {
+          "type": "string",
+          "description": "Subtitle or short description in Bengali.",
+          "maxLength": 500
+        },
+        "category": {
+          "type": "string",
+          "description": "Course category identifier.",
+          "enum": ["web-dev", "ui-ux", "freelancing", "graphics"]
+        },
+        "categoryLabelBn": {
+          "type": "string",
+          "description": "Category display label in Bengali.",
+          "maxLength": 50
+        },
+        "instructor": {
+          "type": "string",
+          "description": "Lead instructor name.",
+          "maxLength": 100
+        },
+        "instructorRole": {
+          "type": "string",
+          "description": "Instructor title or role.",
+          "maxLength": 100
+        },
+        "enrolledCount": {
+          "type": "number",
+          "description": "Total students enrolled."
+        },
+        "rating": {
+          "type": "number",
+          "description": "Course star rating (e.g. 4.9)."
+        },
+        "levelBn": {
+          "type": "string",
+          "description": "Skill level in Bengali.",
+          "maxLength": 50
+        },
+        "totalHours": {
+          "type": "string",
+          "description": "Estimated duration in Bengali.",
+          "maxLength": 50
+        },
+        "colorScheme": {
+          "type": "string",
+          "description": "Theme color accent.",
+          "enum": ["indigo", "emerald", "amber", "rose", "sky"]
+        },
+        "featured": {
+          "type": "boolean",
+          "description": "Whether course is featured on marketing hero."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp."
+        }
+      },
+      "required": ["id", "titleBn", "category", "instructor", "colorScheme"]
+    },
+    "Enrollment": {
+      "title": "Enrollment",
+      "description": "Tracks a student's progress and quiz scores in an enrolled course.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Document ID composed of userId_courseId."
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID of the enrolled student."
+        },
+        "courseId": {
+          "type": "string",
+          "description": "ID of the enrolled course."
+        },
+        "completedLessonIds": {
+          "type": "array",
+          "description": "Array of completed lesson IDs."
+        },
+        "enrolledAt": {
+          "type": "string",
+          "description": "ISO date string of enrollment."
+        },
+        "lastAccessedLessonId": {
+          "type": "string",
+          "description": "ID of the last lesson opened."
+        }
+      },
+      "required": ["id", "userId", "courseId", "enrolledAt"]
+    },
+    "CommunityThread": {
+      "title": "CommunityThread",
+      "description": "Discussion post created by a student or mentor for a course.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the discussion thread."
+        },
+        "courseId": {
+          "type": "string",
+          "description": "Associated course ID."
+        },
+        "courseTitleBn": {
+          "type": "string",
+          "description": "Name of the associated course in Bengali.",
+          "maxLength": 200
+        },
+        "authorId": {
+          "type": "string",
+          "description": "UID of author."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Display name of author.",
+          "maxLength": 100
+        },
+        "authorPhotoURL": {
+          "type": "string",
+          "description": "Avatar photo URL of author.",
+          "maxLength": 500
+        },
+        "authorRole": {
+          "type": "string",
+          "description": "Role of the author.",
+          "enum": ["student", "instructor", "superadmin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Readable or ISO timestamp."
+        },
+        "titleBn": {
+          "type": "string",
+          "description": "Discussion question title.",
+          "maxLength": 250
+        },
+        "contentBn": {
+          "type": "string",
+          "description": "Body content of the question.",
+          "maxLength": 3000
+        },
+        "upvotes": {
+          "type": "number",
+          "description": "Total upvotes count."
+        },
+        "upvotedUserIds": {
+          "type": "array",
+          "description": "UIDs of users who gave upvote."
+        },
+        "isPinned": {
+          "type": "boolean",
+          "description": "Whether pinned by super admin."
+        }
+      },
+      "required": ["id", "courseId", "authorId", "authorName", "titleBn", "contentBn"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Designates verified super admin privileges.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Admin email address."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["superadmin"]
+        }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores individual user profile and gamification summary."
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Catalog of courses and syllabus structures."
+    },
+    "/enrollments/{enrollmentId}": {
+      "schema": "Enrollment",
+      "description": "User progress per course."
+    },
+    "/communityThreads/{threadId}": {
+      "schema": "CommunityThread",
+      "description": "Public community forum threads and discussions."
+    },
+    "/admins/{adminId}": {
+      "schema": "AdminRecord",
+      "description": "Registry of authorized admin user IDs."
+    }
+  }
+}

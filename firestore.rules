@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'fdevnaseem@gmail.com' ||
+        request.auth.token.email == 'super@gmail.com' ||
+        request.auth.token.email == 'rashedul76000@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Test connection doc
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // User profiles (with PII security: private to owner & admin)
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.keys().hasAll(['id', 'name', 'email', 'role', 'xp', 'streakDays']) &&
+               data.id is string && data.id == userId &&
+               data.name is string && data.name.size() > 0 && data.name.size() <= 120 &&
+               data.email is string && data.email.size() <= 150 &&
+               data.role in ['student', 'superadmin'] &&
+               data.xp is number &&
+               data.streakDays is number;
+      }
+
+      allow get: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow list: if isSignedIn() && (resource.data.id == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && isOwner(userId) && isValidUser(incoming()) && (incoming().role == 'student' || isAdmin());
+      allow update: if isSignedIn() && (isOwner(userId) || isAdmin()) && isValidUser(incoming()) &&
+                    (incoming().role == existing().role || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Admins registry
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Courses collection (Public read, admin write)
+    match /courses/{courseId} {
+      function isValidCourse(data) {
+        return data.keys().hasAll(['id', 'titleBn', 'category', 'instructor', 'colorScheme']) &&
+               data.id is string && data.id.size() <= 100 &&
+               data.titleBn is string && data.titleBn.size() <= 250 &&
+               data.instructor is string && data.instructor.size() <= 120;
+      }
+
+      allow read: if true;
+      allow create: if isAdmin() && isValidCourse(incoming());
+      allow update: if isAdmin() && isValidCourse(incoming());
+      allow delete: if isAdmin();
+    }
+
+    // Student Course Enrollments and Progress
+    match /enrollments/{enrollmentId} {
+      function isValidEnrollment(data) {
+        return data.keys().hasAll(['id', 'userId', 'courseId', 'enrolledAt']) &&
+               data.id is string && data.id.size() <= 150 &&
+               data.userId is string &&
+               data.courseId is string && data.courseId.size() <= 100 &&
+               data.enrolledAt is string;
+      }
+
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().userId == request.auth.uid && isValidEnrollment(incoming());
+      allow update: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) && isValidEnrollment(incoming());
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Community Forum Threads
+    match /communityThreads/{threadId} {
+      function isValidThread(data) {
+        return data.keys().hasAll(['id', 'courseId', 'authorId', 'authorName', 'titleBn', 'contentBn']) &&
+               data.id is string && data.id.size() <= 100 &&
+               data.courseId is string &&
+               data.authorId is string &&
+               data.authorName is string && data.authorName.size() <= 120 &&
+               data.titleBn is string && data.titleBn.size() <= 300 &&
+               data.contentBn is string && data.contentBn.size() <= 4000;
+      }
+
+      allow read: if true;
+      allow create: if isSignedIn() && incoming().authorId == request.auth.uid && isValidThread(incoming());
+      allow update: if isSignedIn() && (
+        // Author or Admin can update whole thread
+        ((existing().authorId == request.auth.uid || isAdmin()) && isValidThread(incoming())) ||
+        // Other signed in users can upvote
+        (incoming().diff(existing()).affectedKeys().hasOnly(['upvotes', 'upvotedUserIds'])) ||
+        // Other signed in users can add a reply
+        (incoming().diff(existing()).affectedKeys().hasOnly(['replies']))
+      );
+      allow delete: if isSignedIn() && (existing().authorId == request.auth.uid || isAdmin());
+    }
+
+  }
+}

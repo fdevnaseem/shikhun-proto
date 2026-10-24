@@ -1,0 +1,8 @@
+{
+  "name": "শিখুন - Bangla E-Learning Platform",
+  "description": "বাঙালি শিক্ষার্থীদের জন্য আধুনিক স্কিল ডেভেলপমেন্ট ও ক্যারিয়ার গড়ার লার্নিং প্ল্যাটফর্ম। প্রোগ্রামিং, ডিজাইন ও ফ্রিল্যান্সিং কোর্স।",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
